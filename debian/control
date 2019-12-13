@@ -1,0 +1,12 @@
+Source: ros-kinetic-area-division
+Section: misc
+Priority: optional
+Maintainer: Micha Sende <sende@lakeside-labs.com>
+Build-Depends: debhelper (>= 9.0.0), ros-kinetic-catkin, ros-kinetic-cpswarm-msgs, ros-kinetic-geometry-msgs, ros-kinetic-nav-msgs, ros-kinetic-roscpp, ros-kinetic-swarmros
+Homepage: http://wiki.ros.org/area_division
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-area-division
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-kinetic-cpswarm-msgs, ros-kinetic-geometry-msgs, ros-kinetic-nav-msgs, ros-kinetic-roscpp, ros-kinetic-swarmros
+Description: A package that divides the available environment area among multiple cyber physical systems (CPSs) in a swarm.
