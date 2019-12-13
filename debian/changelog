@@ -1,0 +1,8 @@
+ros-kinetic-target-monitor (1.1.0-1xenial) xenial; urgency=high
+
+  * Initial release of target_monitor
+  * Contributors: Micha Sende
+
+ -- Micha Sende <sende@lakeside-labs.com>  Wed, 30 Oct 2019 23:00:00 -0000
+
+

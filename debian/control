@@ -1,0 +1,12 @@
+Source: ros-kinetic-target-monitor
+Section: misc
+Priority: optional
+Maintainer: Micha Sende <sende@lakeside-labs.com>
+Build-Depends: debhelper (>= 9.0.0), ros-kinetic-catkin, ros-kinetic-cpswarm-msgs, ros-kinetic-geometry-msgs, ros-kinetic-roscpp, ros-kinetic-swarmros, ros-kinetic-tf2
+Homepage: http://wiki.ros.org/target_monitor
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-target-monitor
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-kinetic-cpswarm-msgs, ros-kinetic-geometry-msgs, ros-kinetic-roscpp, ros-kinetic-swarmros, ros-kinetic-tf2
+Description: A package that manages information about targets in a swarm of cyber physical systems (CPSs).
