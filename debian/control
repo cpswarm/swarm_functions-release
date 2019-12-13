@@ -1,0 +1,13 @@
+Source: ros-kinetic-swarm-functions
+Section: misc
+Priority: optional
+Maintainer: Micha Sende <sende@lakeside-labs.com>
+Build-Depends: debhelper (>= 9.0.0), ros-kinetic-catkin
+Homepage: http://wiki.ros.org/swarm_functions
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-swarm-functions
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-kinetic-area-division, ros-kinetic-coverage-path, ros-kinetic-kinematics-exchanger, ros-kinetic-state-exchanger, ros-kinetic-target-monitor, ros-kinetic-task-allocation
+Description: The swarm functions library provides simple functionalities that enable swarm algorithms to work.
+ It is part of the swarm library.
