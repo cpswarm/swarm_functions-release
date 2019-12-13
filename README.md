@@ -1,28 +1,104 @@
-# Swarm Functions Library
+# task_allocation
 
-The swarm functions library provides simple functionalities that enable swarm algorithms to work. It is part of the swarm library.
+This package offers action servers for assigning tasks between cyber physical system (CPS). It uses a market-inspired approach by running a single-round, single-item auction. The package offers two action servers that perform the auction, one that acts as auctioneer and one that acts as bidder. The auctioneer opens the auction for a specific duration in which interested bidders can place a single bid. After the timeout the winner, i.e., the bidder with the highest bid is announced.
 
-![Behavior Library Structure](library_structure.png)
-
-## Getting Started
-The behavior library is based on the latest ROS long-term support release [ROS Kinetic Kame](https://wiki.ros.org/kinetic/). Newer versions may also work.
-
-To run swarm functions of this library, the abstraction library is required. The abstraction library consists of three sub-libraries:
-* [hardware functions](https://github.com/cpswarm/hardware_functions)
-* [sensing and actuation](https://github.com/cpswarm/sensing_actuation)
-* hardware drivers
+## Dependencies
+This package depends on the following message definitions:
+* [actionlib_msgs](https://wiki.ros.org/actionlib_msgs)
+* [cpswarm_msgs](https://cpswarm.github.io/cpswarm_msgs/html/index-msg.html)
 
 The communication between CPSs is based on the [CPSwarm Communication Library](https://github.com/cpswarm/swarmio).
 
-Furthermore, the [cpswarm_msgs](https://github.com/cpswarm/cpswarm_msgs/) are required by most packages in this library.
+The following packages of the [sensing and actuation](https://github.com/cpswarm/sensing_actuation) library are required:
+* *_pos_provider
 
-For detailed usage instructions, please refer to the individual ROS packages in this repository.
+Further required packages are:
+* [actionlib](https://wiki.ros.org/actionlib/)
 
-## Contributing
-Contributions are welcome. 
+## Execution
+To start the action servers, run the launch file
+```
+roslaunch task_allocation task_allocation.launch
+```
+which launches both action servers which listen for incoming requests.
 
-Please fork, make your changes, and submit a pull request. For major changes, please open an issue first and discuss it with the other authors.
+### Launch File Parameters
+The launch file can be configured with following parameters:
+* `id` (integer, default: 1)
+  The identifier (ID) of the CPS that is running the servers.
+* `output` (string, default: screen)
+  Whether to show the program output (`screen`) or to write it to a log file (`log`).
 
-## Affiliation
-![CPSwarm](https://github.com/cpswarm/template/raw/master/cpswarm.png)
-This work is supported by the European Commission through the [CPSwarm H2020 project](https://cpswarm.eu) under grant no. 731946.
+### Parameter Files
+In the `param` subdirectory there is the parameter file `task_allocation.yaml` that allows to configure the behavior of the auction process. It contains the following parameters:
+* `~loop_rate` (real, default: 5.0)
+  The frequency in Hz at which to run the control loops.
+* `~queue_size` (integer, default: 10)
+  The size of the message queue used for publishing and subscribing to topics.
+* `~timeout` (real, default: 10.0)
+  The time in seconds to listen for incoming bids from other CPSs after the auction has been opened, i.e., auction duration.
+
+## Nodes
+
+### auction_action
+The `auction_action` node offers the `task_allocation_auction` action server that acts as auctioneer in the task allocation auction. When the action is called, it opens an auction and announces the task with ID and location. It then waits a specific time for the bids of other CPS. Once the auction timeout expires, it broadcasts the ID of the winning CPS, i.e., the one with the highest bid, to which the task is assigned. If no CPS participated in the auction, the action server aborts the auction goal.
+
+#### Action API
+The `auction_action` node provides an implementation of the SimpleActionServer to provide the task allocation auction process. It takes in goals containing cpswarm_msgs/TaskAllocation messages.
+
+##### Action Subscribed Topics
+* `cmd/task_allocation_auction/goal` ([cpswarm_msgs/TaskAllocationActionGoal](https://cpswarm.github.io/cpswarm_msgs/html/action/TaskAllocation.html))
+  A goal to start an auction containing the universally unique ID (UUID) of the auctioneer together with the ID and the position of the task that is auctioned.
+* `cmd/task_allocation_auction/cancel` ([actionlib_msgs/GoalID](https://docs.ros.org/api/actionlib_msgs/html/msg/GoalID.html))
+  A request to cancel a specific auction goal.
+
+##### Action Published Topics
+* `cmd/task_allocation_auction/feedback` ([cpswarm_msgs/TaskAllocationActionFeedback](https://cpswarm.github.io/cpswarm_msgs/html/action/TaskAllocation.html))
+  The feedback is empty for the `task_allocation_auction` action.
+* `cmd/task_allocation_auction/status` ([actionlib_msgs/GoalStatusArray](https://docs.ros.org/api/actionlib_msgs/html/msg/GoalStatusArray.html))
+  Provides status information on the goals that are sent to the `task_allocation_auction` action.
+* `cmd/task_allocation_auction/result` ([cpswarm_msgs/TaskAllocationActionResult](https://cpswarm.github.io/cpswarm_msgs/html/action/TaskAllocation.html))
+  The result of the auction contains the UUID of the winning CPS, together with ID and position of the task that has been auctioned.
+
+#### Subscribed Topics
+* `bridge/events/cps_selection` ([cpswarm_msgs/TaskAllocationEvent](https://cpswarm.github.io/cpswarm_msgs/html/msg/TaskAllocationEvent.html))
+  The the bids of the auction from other CPSs. Messages are exchanged between CPSs using the [CPSwarm Communication Library](https://github.com/cpswarm/swarmio).
+
+#### Published Topics
+* `cps_selected` ([cpswarm_msgs/TaskAllocatedEvent](https://cpswarm.github.io/cpswarm_msgs/html/msg/TaskAllocatedEvent.html))
+  The UUID of the CPS that won the auction to the other CPSs. Messages are exchanged between CPSs using the [CPSwarm Communication Library](https://github.com/cpswarm/swarmio).
+
+### bid_action
+The `bid_action` node offers the `task_allocation_bid` action server that acts as bidder in the task allocation auction opened by another CPS. When the action is called, it computes a bid for the task based on its location. The bid value is inversely proportional to the distance between the CPS and the task. It publishes the bid and waits until the auction ends. If the CPS has won the auction, the action server goal succeeds, otherwise it is aborted.
+
+#### Action API
+The `bid_action` node provides an implementation of the SimpleActionServer to provide the task allocation auction process. It takes in goals containing cpswarm_msgs/TaskAllocation messages.
+
+##### Action Subscribed Topics
+* `cmd/task_allocation_bid/goal` ([cpswarm_msgs/TaskAllocationActionGoal](https://cpswarm.github.io/cpswarm_msgs/html/action/TaskAllocation.html))
+  A goal to compute a bid containing the universally unique ID (UUID) of the auctioneer together with the ID and the position of the task that is auctioned.
+* `cmd/task_allocation_bid/cancel` ([actionlib_msgs/GoalID](https://docs.ros.org/api/actionlib_msgs/html/msg/GoalID.html))
+  A request to cancel a specific bidding goal.
+
+##### Action Published Topics
+* `cmd/task_allocation_bid/feedback` ([cpswarm_msgs/TaskAllocationActionFeedback](https://cpswarm.github.io/cpswarm_msgs/html/action/TaskAllocation.html))
+  The feedback is empty for the `task_allocation_bid` action.
+* `cmd/task_allocation_bid/status` ([actionlib_msgs/GoalStatusArray](https://docs.ros.org/api/actionlib_msgs/html/msg/GoalStatusArray.html))
+  Provides status information on the goals that are sent to the `task_allocation_bid` action.
+* `cmd/task_allocation_bid/result` ([cpswarm_msgs/TaskAllocationActionResult](https://cpswarm.github.io/cpswarm_msgs/html/action/TaskAllocation.html))
+  The result of the auction contains ID and position of the task that has been auctioned.
+
+#### Subscribed Topics
+* `pos_provider/pose` ([geometry_msgs/PoseStamped](https://docs.ros.org/api/geometry_msgs/html/msg/PoseStamped.html))
+  The current position of the CPS.
+* `bridge/uuid` ([swarmros/String](https://cpswarm.github.io/swarmio/swarmros/msg/String.html))
+  The UUID of this CPS. It is published by the [CPSwarm Communication Library](https://github.com/cpswarm/swarmio).
+* `bridge/events/cps_selected` ([cpswarm_msgs/TaskAllocatedEvent](https://cpswarm.github.io/cpswarm_msgs/html/msg/TaskAllocatedEvent.html))
+  The UUID of the CPS that won the auction. Messages are exchanged between CPSs using the [CPSwarm Communication Library](https://github.com/cpswarm/swarmio).
+
+#### Published Topics
+* `cps_selection` ([cpswarm_msgs/TaskAllocationEvent](https://cpswarm.github.io/cpswarm_msgs/html/msg/TaskAllocationEvent.html))
+  The auction bid submitted to the auctioneer CPS. Messages are exchanged between CPSs using the [CPSwarm Communication Library](https://github.com/cpswarm/swarmio).
+
+## Code API
+[task_allocation package code API documentation](https://cpswarm.github.io/swarm_functions/task_allocation/docs/html/files.html)
