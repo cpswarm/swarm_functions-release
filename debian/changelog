@@ -1,0 +1,15 @@
+ros-kinetic-kinematics-exchanger (1.1.0-1xenial) xenial; urgency=high
+
+  * Changed: Renamed package swarm_kinematics_exchanger to kinematics_exchanger
+  * Contributors: Micha Sende
+
+ -- Micha Sende <sende@lakeside-labs.com>  Wed, 30 Oct 2019 23:00:00 -0000
+
+ros-kinetic-kinematics-exchanger (1.0.0-1xenial) xenial; urgency=high
+
+  * Initial release of swarm_kinematics_exchanger
+  * Contributors: Micha Sende
+
+ -- Micha Sende <sende@lakeside-labs.com>  Tue, 10 Sep 2019 22:00:00 -0000
+
+

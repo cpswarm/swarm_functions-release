@@ -1,0 +1,12 @@
+Source: ros-kinetic-kinematics-exchanger
+Section: misc
+Priority: optional
+Maintainer: Micha Sende <sende@lakeside-labs.com>
+Build-Depends: debhelper (>= 9.0.0), ros-kinetic-catkin, ros-kinetic-cpswarm-msgs, ros-kinetic-geometry-msgs, ros-kinetic-roscpp, ros-kinetic-tf2
+Homepage: http://wiki.ros.org/kinematics_exchanger
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-kinematics-exchanger
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-kinetic-cpswarm-msgs, ros-kinetic-geometry-msgs, ros-kinetic-roscpp, ros-kinetic-tf2
+Description: A package that exchanges kinematic properties such as velocity or position between multiple cyber physical systems (CPSs) in a swarm.
